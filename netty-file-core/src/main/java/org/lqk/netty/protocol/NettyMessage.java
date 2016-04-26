@@ -15,6 +15,10 @@
  */
 package org.lqk.netty.protocol;
 
+import io.netty.buffer.ByteBuf;
+import org.lqk.netty.codec.marshalling.MarshallingDecoder;
+import org.lqk.netty.codec.marshalling.MarshallingEncoder;
+
 /**
  * @author lilinfeng
  * @date 2014年3月14日
@@ -25,6 +29,37 @@ public final class NettyMessage {
 	private Header header;
 
 	private byte[] body;
+
+	public static NettyMessage readNettyMessage(NettyMessage nettyMessage, ByteBuf byteBuf, MarshallingDecoder marshallingDecoder) throws Exception {
+		if(null == nettyMessage.getHeader()){
+			nettyMessage.setHeader(new Header());
+		}
+		Header.readHeader(nettyMessage.getHeader(),byteBuf,marshallingDecoder);
+		return readBody(nettyMessage,byteBuf);
+	}
+
+	public static NettyMessage readBody(NettyMessage nettyMessage, ByteBuf byteBuf) {
+		int bodyLen = nettyMessage.getHeader().getBodyLength();
+		if (byteBuf.readableBytes() > 0 && bodyLen > 0) {
+			byte[] b = new byte[bodyLen];
+			byteBuf.readBytes(b);
+			nettyMessage.setBody(b);
+		}
+		return nettyMessage;
+	}
+
+
+	public static ByteBuf writeNettyMessage(NettyMessage nettyMessage,ByteBuf byteBuf,MarshallingEncoder marshallingEncoder) throws Exception {
+		Header.writeHeader(nettyMessage.getHeader(),byteBuf,marshallingEncoder);
+		if (nettyMessage.getBody() != null) {
+			byteBuf.writeBytes(nettyMessage.getBody());
+			byteBuf.setInt(Header.BODY_LENGTH_OFFSET, nettyMessage.getBody().length);
+		}else{
+			byteBuf.setInt(Header.BODY_LENGTH_OFFSET, 0);
+		}
+		byteBuf.setInt(Header.LENGTH_OFFSET, byteBuf.readableBytes());
+		return byteBuf;
+	}
 
 	/**
 	 * @return the header

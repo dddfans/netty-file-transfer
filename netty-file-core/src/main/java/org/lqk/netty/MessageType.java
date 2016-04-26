@@ -17,23 +17,55 @@ package org.lqk.netty;
 
 /**
  * @author Lilinfeng
- * @date 2014年3月15日
  * @version 1.0
+ * @date 2014年3月15日
  */
 public enum MessageType {
 
     SERVICE_REQ((byte) 0), SERVICE_RESP((byte) 1), ONE_WAY((byte) 2), LOGIN_REQ(
-	    (byte) 3), LOGIN_RESP((byte) 4), HEARTBEAT_REQ((byte) 5), HEARTBEAT_RESP(
-	    (byte) 6),FILE_REQ((byte)7),FILE_RESP((byte)8),FILE_REQ_READTIMEOUT((byte)7);
-	
+            (byte) 3), LOGIN_RESP((byte) 4), HEARTBEAT_REQ((byte) 5), HEARTBEAT_RESP(
+            (byte) 6), FILE_INFO_REQ((byte) 7), FILE_INFO_RESP((byte) 8), FILE_DATA_REQ((byte) 9), FILE_DATA_RESP((byte) 10), FILE_REQ_READTIMEOUT((byte) 11);
+
 
     private byte value;
 
     private MessageType(byte value) {
-	this.value = value;
+        this.value = value;
     }
 
     public byte value() {
-	return this.value;
+        return this.value;
+    }
+
+
+    public static MessageType valueOf(byte value) {
+        switch (value) {
+            case 0:
+                return SERVICE_REQ;
+            case 1:
+                return SERVICE_RESP;
+            case 2:
+                return ONE_WAY;
+            case 3:
+                return LOGIN_REQ;
+            case 4:
+                return LOGIN_RESP;
+            case 5:
+                return HEARTBEAT_REQ;
+            case 6:
+                return HEARTBEAT_RESP;
+            case 7:
+                return FILE_INFO_REQ;
+            case 8:
+                return FILE_INFO_RESP;
+            case 9:
+                return FILE_DATA_REQ;
+            case 10:
+                return FILE_DATA_RESP;
+            case 11:
+                return FILE_REQ_READTIMEOUT;
+            default:
+                return null;
+        }
     }
 }

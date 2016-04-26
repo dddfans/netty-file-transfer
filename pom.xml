@@ -31,7 +31,7 @@
     <modules>
         <module>netty-client-demo</module>
         <module>netty-file-core</module>
-        <module>netty-server-core</module>
+        <module>netty-server-demo</module>
     </modules>
 
 

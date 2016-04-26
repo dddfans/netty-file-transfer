@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.lqk.netty.codec.marshalling;
+package org.lqk.netty.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import org.lqk.netty.codec.marshalling.MarshallingEncoder;
+import org.lqk.netty.protocol.NettyMessage;
 
 import java.io.IOException;
-import java.util.Map;
-
-import org.lqk.netty.struct.NettyMessage;
 
 /**
  * @author Lilinfeng
@@ -41,33 +40,6 @@ public final class NettyMessageEncoder extends MessageToByteEncoder<NettyMessage
 	protected void encode(ChannelHandlerContext ctx, NettyMessage msg, ByteBuf sendBuf) throws Exception {
 		if (msg == null || msg.getHeader() == null)
 			throw new Exception("The encode message is null");
-		sendBuf.writeInt((msg.getHeader().getCrcCode()));
-		sendBuf.writeInt((msg.getHeader().getLength()));
-		sendBuf.writeInt((msg.getHeader().getBodyLength()));
-		sendBuf.writeByte((msg.getHeader().getType()));
-		sendBuf.writeLong((msg.getHeader().getSessionID()));
-		sendBuf.writeByte((msg.getHeader().getPriority()));
-		sendBuf.writeInt((msg.getHeader().getAttachment().size()));
-		String key = null;
-		byte[] keyArray = null;
-		Object value = null;
-		for (Map.Entry<String, Object> param : msg.getHeader().getAttachment().entrySet()) {
-			key = param.getKey();
-			keyArray = key.getBytes("UTF-8");
-			sendBuf.writeInt(keyArray.length);
-			sendBuf.writeBytes(keyArray);
-			value = param.getValue();
-			marshallingEncoder.encode(value, sendBuf);
-		}
-		key = null;
-		keyArray = null;
-		value = null;
-		if (msg.getBody() != null) {
-			sendBuf.writeBytes(msg.getBody());
-			sendBuf.setInt(8, msg.getBody().length);
-		}else{
-			sendBuf.setInt(8, 0);
-		}
-		sendBuf.setInt(4, sendBuf.readableBytes());
+		NettyMessage.writeNettyMessage(msg,sendBuf,marshallingEncoder);
 	}
 }

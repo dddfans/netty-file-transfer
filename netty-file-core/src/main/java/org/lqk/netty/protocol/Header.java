@@ -15,141 +15,203 @@
  */
 package org.lqk.netty.protocol;
 
+import io.netty.buffer.ByteBuf;
+import org.lqk.netty.codec.marshalling.MarshallingDecoder;
+import org.lqk.netty.codec.marshalling.MarshallingEncoder;
+
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author Lilinfeng
- * @date 2014年3月14日
  * @version 1.0
+ * @date 2014年3月14日
  */
 public final class Header {
 
-	public final static int LENGTH_OFFSET = 4;
-	public final static int BODY_LENGTH_OFFSET = 8;
-	public final static int TYPE_OFFSET = 12;
-	
-	private int crcCode = 0xabef0101;
+    public final static int LENGTH_OFFSET = 4;
+    public final static int BODY_LENGTH_OFFSET = 8;
+    public final static int TYPE_OFFSET = 12;
 
-	private int length;// 消息长度
+    private int crcCode = 0xabef0101;
 
-	private int bodyLength;// 消息体长度
-	
-	private byte type;// 消息类型
+    private int length;// 消息长度
 
-	private long sessionID;// 会话ID
+    private int bodyLength;// 消息体长度
 
-	private byte priority;// 消息优先级
+    private byte type;// 消息类型
 
-	private Map<String, Object> attachment = new HashMap<String, Object>(); // 附件
+    private long sessionID;// 会话ID
 
-	/**
-	 * @return the crcCode
-	 */
-	public final int getCrcCode() {
-		return crcCode;
-	}
+    private byte priority;// 消息优先级
 
-	/**
-	 * @param crcCode
-	 *            the crcCode to set
-	 */
-	public final void setCrcCode(int crcCode) {
-		this.crcCode = crcCode;
-	}
+    private Map<String, Object> attachment = new HashMap<String, Object>(); // 附件
 
-	/**
-	 * @return the length
-	 */
-	public final int getLength() {
-		return length;
-	}
 
-	/**
-	 * @param length
-	 *            the length to set
-	 */
-	public final void setLength(int length) {
-		this.length = length;
-	}
+    public static ByteBuf writeHeader(Header header, ByteBuf byteBuf, MarshallingEncoder marshallingEncoder) throws Exception {
+        byteBuf.writeInt((header.getCrcCode()));
+        byteBuf.writeInt((header.getLength()));
+        byteBuf.writeInt((header.getBodyLength()));
+        byteBuf.writeByte((header.getType()));
+        byteBuf.writeLong((header.getSessionID()));
+        byteBuf.writeByte((header.getPriority()));
+        writeAttachment(header, byteBuf, marshallingEncoder);
+        return byteBuf;
+    }
 
-	/**
-	 * @return the sessionID
-	 */
-	public final long getSessionID() {
-		return sessionID;
-	}
+    private static ByteBuf writeAttachment(Header header, ByteBuf byteBuf, MarshallingEncoder marshallingEncoder) throws Exception {
+        byteBuf.writeInt((header.getAttachment().size()));
+        String key = null;
+        byte[] keyArray = null;
+        Object value = null;
+        for (Map.Entry<String, Object> param : header.getAttachment().entrySet()) {
+            key = param.getKey();
+            keyArray = key.getBytes("UTF-8");
+            byteBuf.writeInt(keyArray.length);
+            byteBuf.writeBytes(keyArray);
+            value = param.getValue();
+            marshallingEncoder.encode(value, byteBuf);
+        }
+        key = null;
+        keyArray = null;
+        value = null;
+        return byteBuf;
+    }
 
-	/**
-	 * @param sessionID
-	 *            the sessionID to set
-	 */
-	public final void setSessionID(long sessionID) {
-		this.sessionID = sessionID;
-	}
+    public static Header readHeader(Header header, ByteBuf byteBuf, MarshallingDecoder marshallingDecoder) throws Exception {
+        header.setCrcCode(byteBuf.readInt());
+        header.setLength(byteBuf.readInt());
+        header.setBodyLength(byteBuf.readInt());
+        header.setType(byteBuf.readByte());
+        header.setSessionID(byteBuf.readLong());
+        header.setPriority(byteBuf.readByte());
+        return readAttachment(header, byteBuf, marshallingDecoder);
+    }
 
-	/**
-	 * @return the type
-	 */
-	public final byte getType() {
-		return type;
-	}
+    private static Header readAttachment(Header header, ByteBuf byteBuf, MarshallingDecoder marshallingDecoder) throws Exception {
+        int size = byteBuf.readInt();
+        if (size > 0) {
+            Map<String, Object> attch = new HashMap<String, Object>(size);
+            int keySize = 0;
+            byte[] keyArray = null;
+            String key = null;
+            for (int i = 0; i < size; i++) {
+                keySize = byteBuf.readInt();
+                keyArray = new byte[keySize];
+                byteBuf.readBytes(keyArray);
+                key = new String(keyArray, "UTF-8");
+                attch.put(key, marshallingDecoder.decode(byteBuf));
+            }
+            keyArray = null;
+            key = null;
+            header.setAttachment(attch);
+        }
+        return header;
+    }
 
-	/**
-	 * @param type
-	 *            the type to set
-	 */
-	public final void setType(byte type) {
-		this.type = type;
-	}
+    /**
+     * @return the crcCode
+     */
+    public final int getCrcCode() {
+        return crcCode;
+    }
 
-	/**
-	 * @return the priority
-	 */
-	public final byte getPriority() {
-		return priority;
-	}
+    /**
+     * @param crcCode the crcCode to set
+     */
+    public final void setCrcCode(int crcCode) {
+        this.crcCode = crcCode;
+    }
 
-	/**
-	 * @param priority
-	 *            the priority to set
-	 */
-	public final void setPriority(byte priority) {
-		this.priority = priority;
-	}
+    /**
+     * @return the length
+     */
+    public final int getLength() {
+        return length;
+    }
 
-	/**
-	 * @return the attachment
-	 */
-	public final Map<String, Object> getAttachment() {
-		return attachment;
-	}
+    /**
+     * @param length the length to set
+     */
+    public final void setLength(int length) {
+        this.length = length;
+    }
 
-	/**
-	 * @param attachment
-	 *            the attachment to set
-	 */
-	public final void setAttachment(Map<String, Object> attachment) {
-		this.attachment = attachment;
-	}
+    /**
+     * @return the sessionID
+     */
+    public final long getSessionID() {
+        return sessionID;
+    }
 
-	public int getBodyLength() {
-		return bodyLength;
-	}
+    /**
+     * @param sessionID the sessionID to set
+     */
+    public final void setSessionID(long sessionID) {
+        this.sessionID = sessionID;
+    }
 
-	public void setBodyLength(int bodyLength) {
-		this.bodyLength = bodyLength;
-	}
+    /**
+     * @return the type
+     */
+    public final byte getType() {
+        return type;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "Header [crcCode=" + crcCode + ", length=" + length + ", bodyLength=" + bodyLength + ", sessionID="
-				+ sessionID + ", type=" + type + ", priority=" + priority + ", attachment=" + attachment + "]";
-	}
+    /**
+     * @param type the type to set
+     */
+    public final void setType(byte type) {
+        this.type = type;
+    }
+
+    /**
+     * @return the priority
+     */
+    public final byte getPriority() {
+        return priority;
+    }
+
+    /**
+     * @param priority the priority to set
+     */
+    public final void setPriority(byte priority) {
+        this.priority = priority;
+    }
+
+    /**
+     * @return the attachment
+     */
+    public final Map<String, Object> getAttachment() {
+        return attachment;
+    }
+
+    /**
+     * @param attachment the attachment to set
+     */
+    public final void setAttachment(Map<String, Object> attachment) {
+        this.attachment = attachment;
+    }
+
+    public int getBodyLength() {
+        return bodyLength;
+    }
+
+    public void setBodyLength(int bodyLength) {
+        this.bodyLength = bodyLength;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "Header [crcCode=" + crcCode + ", length=" + length + ", bodyLength=" + bodyLength + ", sessionID="
+                + sessionID + ", type=" + type + ", priority=" + priority + ", attachment=" + attachment + "]";
+    }
+
 
 }

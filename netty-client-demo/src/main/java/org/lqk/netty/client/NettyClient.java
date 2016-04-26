@@ -31,8 +31,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.lqk.netty.NettyConstant;
-import org.lqk.netty.codec.marshalling.NettyMessageDecoder;
-import org.lqk.netty.codec.marshalling.NettyMessageEncoder;
 
 
 public class NettyClient {

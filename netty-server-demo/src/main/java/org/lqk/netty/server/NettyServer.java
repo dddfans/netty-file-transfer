@@ -1,4 +1,4 @@
-/*
+package org.lqk.netty.server;/*
  * Copyright 2013-2018 Lilinfeng.
  *  
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.lqk.netty.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -28,8 +27,6 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 
 import java.io.IOException;
 
-import org.lqk.netty.codec.marshalling.NettyMessageDecoder;
-import org.lqk.netty.codec.marshalling.NettyMessageEncoder;
 import org.lqk.netty.NettyConstant;
 
 /**
@@ -52,7 +49,7 @@ public class NettyServer {
                     public void initChannel(SocketChannel ch)
                             throws IOException {
                         ch.pipeline().addLast(
-                                new NettyMessageDecoder(1024 * 1024, 4, 4));
+                                new NettyMessageDecoder(4 * 1024 * 1024,4,4));
                         ch.pipeline().addLast(new NettyMessageEncoder());
                         ch.pipeline().addLast("readTimeoutHandler",
                                 new ReadTimeoutHandler(50));
@@ -63,9 +60,9 @@ public class NettyServer {
                 });
 
         // 绑定端口，同步等待成功
-        b.bind(NettyConstant.REMOTEIP, NettyConstant.PORT).sync();
+        b.bind(NettyConstant.REMOTE_IP, NettyConstant.REMOTE_PORT).sync();
         System.out.println("Netty server start ok : "
-                + (NettyConstant.REMOTEIP + " : " + NettyConstant.PORT));
+                + (NettyConstant.REMOTE_IP + " : " + NettyConstant.REMOTE_PORT));
     }
 
     public static void main(String[] args) throws Exception {
