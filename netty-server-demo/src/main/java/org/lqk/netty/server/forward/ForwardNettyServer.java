@@ -1,4 +1,4 @@
-package org.lqk.netty.server.sectional;
+package org.lqk.netty.server.forward;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -9,13 +9,18 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.lqk.netty.NettyConstant;
 import org.lqk.netty.server.NettyMessageEncoder;
+import org.lqk.netty.server.forward.client.NettyRemotingClient;
 
 import java.io.IOException;
 
 /**
  * Created by bert on 16-4-26.
  */
-public class SimpleSectionalNettyServer {
+public class ForwardNettyServer {
+    private NettyRemotingClient nettyRemotingClient;
+    public ForwardNettyServer(NettyRemotingClient nettyRemotingClient){
+        this.nettyRemotingClient = nettyRemotingClient;
+    }
     public void bind() throws Exception {
         // 配置服务端的NIO线程组
         EventLoopGroup bossGroup = new NioEventLoopGroup();
@@ -28,8 +33,9 @@ public class SimpleSectionalNettyServer {
                     public void initChannel(SocketChannel ch)
                             throws IOException {
                         ch.pipeline().addLast(
-                                new SectionalNettyMessageReplayingDecoder("/home/bert/tmp1"));
+                                new ForwardNettyMessageReplayingDecoder("/home/bert/tmp1"));
                         ch.pipeline().addLast(new NettyMessageEncoder());
+                        ch.pipeline().addLast(new ForwardNettyCommandHandler(nettyRemotingClient));
                     }
                 });
 
@@ -40,6 +46,8 @@ public class SimpleSectionalNettyServer {
     }
 
     public static void main(String[] args) throws Exception {
-        new SimpleSectionalNettyServer().bind();
+        NettyRemotingClient nettyRemotingClient = new NettyRemotingClient();
+        nettyRemotingClient.start();
+        new ForwardNettyServer(nettyRemotingClient).bind();
     }
 }

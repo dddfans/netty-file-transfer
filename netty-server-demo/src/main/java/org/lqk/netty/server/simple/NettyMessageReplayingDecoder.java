@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
 import org.lqk.netty.codec.marshalling.MarshallingDecoder;
-import org.lqk.netty.protocol.Header;
+import org.lqk.netty.protocol.NettyMessageHeader;
 import org.lqk.netty.protocol.NettyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +42,8 @@ public class NettyMessageReplayingDecoder extends ReplayingDecoder<NettyMessageR
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         switch (state()) {
             case HEADER: {
-                Header header = new Header();
-                Header.readHeader(header, in, marshallingDecoder);
+                NettyMessageHeader header = new NettyMessageHeader();
+                NettyMessageHeader.readHeader(header, in, marshallingDecoder);
                 this.nettyMessage = new NettyMessage();
                 nettyMessage.setHeader(header);
                 checkpoint(State.BODY);

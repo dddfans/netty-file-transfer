@@ -5,7 +5,7 @@ import io.netty.buffer.Unpooled;
 import org.apache.commons.io.FileUtils;
 import org.lqk.netty.NettyConstant;
 import org.lqk.netty.codec.marshalling.MarshallingEncoder;
-import org.lqk.netty.protocol.Header;
+import org.lqk.netty.protocol.NettyMessageHeader;
 import org.lqk.netty.protocol.NettyMessage;
 
 import java.io.File;
@@ -45,7 +45,7 @@ public class SimpleClient {
         File file = new File(filePath);
         byte[] b = FileUtils.readFileToByteArray(file);
         NettyMessage message = new NettyMessage();
-        Header header = new Header();
+        NettyMessageHeader header = new NettyMessageHeader();
         Map<String,Object> attachment = new HashMap<String, Object>();
         header.setAttachment(attachment);
         attachment.put("fileName",file.getName());

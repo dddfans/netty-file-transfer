@@ -21,8 +21,8 @@ import io.netty.channel.ChannelHandlerContext;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.lqk.netty.MessageType;
-import org.lqk.netty.protocol.Header;
+import org.lqk.netty.protocol.NettyMessageType;
+import org.lqk.netty.protocol.NettyMessageHeader;
 import org.lqk.netty.protocol.NettyMessage;
 
 /**
@@ -38,10 +38,10 @@ public class HeartBeatReqHandler extends ChannelHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		NettyMessage message = (NettyMessage) msg;
 		// 握手成功，主动发送心跳消息
-		if (message.getHeader() != null && message.getHeader().getType() == MessageType.LOGIN_RESP.value()) {
+		if (message.getHeader() != null && message.getHeader().getType() == NettyMessageType.LOGIN_RESP.value()) {
 			heartBeat = ctx.executor().scheduleAtFixedRate(new HeartBeatTask(ctx), 0, 5000,
 					TimeUnit.MILLISECONDS);
-		} else if (message.getHeader() != null && message.getHeader().getType() == MessageType.HEARTBEAT_RESP.value()) {
+		} else if (message.getHeader() != null && message.getHeader().getType() == NettyMessageType.HEARTBEAT_RESP.value()) {
 			System.out.println("Client receive server heart beat message : ---> " + message);
 		} else
 			ctx.fireChannelRead(msg);
@@ -63,8 +63,8 @@ public class HeartBeatReqHandler extends ChannelHandlerAdapter {
 
 		private NettyMessage buildHeatBeat() {
 			NettyMessage message = new NettyMessage();
-			Header header = new Header();
-			header.setType(MessageType.HEARTBEAT_REQ.value());
+			NettyMessageHeader header = new NettyMessageHeader();
+			header.setType(NettyMessageType.HEARTBEAT_REQ.value());
 			message.setHeader(header);
 			return message;
 		}

@@ -4,7 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.lqk.netty.protocol.Header;
+import org.lqk.netty.protocol.NettyMessageHeader;
 import org.lqk.netty.protocol.NettyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
 
         ctx.executor().submit(new Runnable() {
             public void run() {
-                Header header = message.getHeader();
+                NettyMessageHeader header = message.getHeader();
                 String fileName = (String) header.getAttachment().get("fileName");
                 if (StringUtils.isNotEmpty(fileName)) {
                     try {

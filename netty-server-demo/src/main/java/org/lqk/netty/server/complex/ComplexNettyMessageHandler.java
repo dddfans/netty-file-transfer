@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by bert on 16-4-26.
  */
-public class NettyMessageHandler extends ChannelHandlerAdapter{
-    private static Logger log = LoggerFactory.getLogger(NettyMessageHandler.class);
+public class ComplexNettyMessageHandler extends ChannelHandlerAdapter{
+    private static Logger log = LoggerFactory.getLogger(ComplexNettyMessageHandler.class);
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         NettyMessage message = (NettyMessage) msg;

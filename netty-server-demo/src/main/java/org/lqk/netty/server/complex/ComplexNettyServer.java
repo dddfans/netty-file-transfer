@@ -28,9 +28,9 @@ public class ComplexNettyServer {
                     public void initChannel(SocketChannel ch)
                             throws IOException {
                         ch.pipeline().addLast(
-                                new NettyMessageComplexReplayingDecoder("/home/bert/tmp1"));
+                                new ComplexNettyMessageReplayingDecoder("/home/bert/tmp1"));
                         ch.pipeline().addLast(new NettyMessageEncoder());
-                        ch.pipeline().addLast(new NettyMessageHandler());
+                        ch.pipeline().addLast(new ComplexNettyMessageHandler());
                     }
                 });
 

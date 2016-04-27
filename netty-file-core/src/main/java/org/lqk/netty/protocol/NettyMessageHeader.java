@@ -19,7 +19,6 @@ import io.netty.buffer.ByteBuf;
 import org.lqk.netty.codec.marshalling.MarshallingDecoder;
 import org.lqk.netty.codec.marshalling.MarshallingEncoder;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,7 +27,7 @@ import java.util.Map;
  * @version 1.0
  * @date 2014年3月14日
  */
-public final class Header {
+public final class NettyMessageHeader {
 
     public final static int LENGTH_OFFSET = 4;
     public final static int BODY_LENGTH_OFFSET = 8;
@@ -49,7 +48,7 @@ public final class Header {
     private Map<String, Object> attachment = new HashMap<String, Object>(); // 附件
 
 
-    public static ByteBuf writeHeader(Header header, ByteBuf byteBuf, MarshallingEncoder marshallingEncoder) throws Exception {
+    public static ByteBuf writeHeader(NettyMessageHeader header, ByteBuf byteBuf, MarshallingEncoder marshallingEncoder) throws Exception {
         byteBuf.writeInt((header.getCrcCode()));
         byteBuf.writeInt((header.getLength()));
         byteBuf.writeInt((header.getBodyLength()));
@@ -60,7 +59,7 @@ public final class Header {
         return byteBuf;
     }
 
-    private static ByteBuf writeAttachment(Header header, ByteBuf byteBuf, MarshallingEncoder marshallingEncoder) throws Exception {
+    private static ByteBuf writeAttachment(NettyMessageHeader header, ByteBuf byteBuf, MarshallingEncoder marshallingEncoder) throws Exception {
         byteBuf.writeInt((header.getAttachment().size()));
         String key = null;
         byte[] keyArray = null;
@@ -79,7 +78,7 @@ public final class Header {
         return byteBuf;
     }
 
-    public static Header readHeader(Header header, ByteBuf byteBuf, MarshallingDecoder marshallingDecoder) throws Exception {
+    public static NettyMessageHeader readHeader(NettyMessageHeader header, ByteBuf byteBuf, MarshallingDecoder marshallingDecoder) throws Exception {
         header.setCrcCode(byteBuf.readInt());
         header.setLength(byteBuf.readInt());
         header.setBodyLength(byteBuf.readInt());
@@ -89,7 +88,7 @@ public final class Header {
         return readAttachment(header, byteBuf, marshallingDecoder);
     }
 
-    private static Header readAttachment(Header header, ByteBuf byteBuf, MarshallingDecoder marshallingDecoder) throws Exception {
+    private static NettyMessageHeader readAttachment(NettyMessageHeader header, ByteBuf byteBuf, MarshallingDecoder marshallingDecoder) throws Exception {
         int size = byteBuf.readInt();
         if (size > 0) {
             Map<String, Object> attch = new HashMap<String, Object>(size);
@@ -209,7 +208,7 @@ public final class Header {
      */
     @Override
     public String toString() {
-        return "Header [crcCode=" + crcCode + ", length=" + length + ", bodyLength=" + bodyLength + ", sessionID="
+        return "NettyMessageHeader [crcCode=" + crcCode + ", length=" + length + ", bodyLength=" + bodyLength + ", sessionID="
                 + sessionID + ", type=" + type + ", priority=" + priority + ", attachment=" + attachment + "]";
     }
 

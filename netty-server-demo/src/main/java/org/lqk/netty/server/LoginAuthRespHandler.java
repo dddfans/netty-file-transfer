@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.lqk.netty.protocol.NettyMessage;
-import org.lqk.netty.protocol.Header;
-import org.lqk.netty.MessageType;
+import org.lqk.netty.protocol.NettyMessageHeader;
+import org.lqk.netty.protocol.NettyMessageType;
 
 /**
  * @author Lilinfeng
@@ -51,7 +51,7 @@ public class LoginAuthRespHandler extends ChannelHandlerAdapter {
 
         // 如果是握手请求消息，处理，其它消息透传
         if (message.getHeader() != null
-                && message.getHeader().getType() == MessageType.LOGIN_REQ
+                && message.getHeader().getType() == NettyMessageType.LOGIN_REQ
                 .value()) {
             String nodeIndex = ctx.channel().remoteAddress().toString();
             NettyMessage loginResp = null;
@@ -84,8 +84,8 @@ public class LoginAuthRespHandler extends ChannelHandlerAdapter {
 
     private NettyMessage buildResponse(byte result) {
         NettyMessage message = new NettyMessage();
-        Header header = new Header();
-        header.setType(MessageType.LOGIN_RESP.value());
+        NettyMessageHeader header = new NettyMessageHeader();
+        header.setType(NettyMessageType.LOGIN_RESP.value());
         message.setHeader(header);
         message.setBody(new byte[]{result});
         return message;

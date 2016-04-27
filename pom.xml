@@ -32,6 +32,8 @@
         <module>netty-client-demo</module>
         <module>netty-file-core</module>
         <module>netty-server-demo</module>
+        <module>netty-server-forward</module>
+        <module>netty-forward-core</module>
     </modules>
 
 

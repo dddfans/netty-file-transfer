@@ -19,6 +19,8 @@ import io.netty.buffer.ByteBuf;
 import org.lqk.netty.codec.marshalling.MarshallingDecoder;
 import org.lqk.netty.codec.marshalling.MarshallingEncoder;
 
+import java.util.Map;
+
 /**
  * @author lilinfeng
  * @date 2014年3月14日
@@ -26,15 +28,15 @@ import org.lqk.netty.codec.marshalling.MarshallingEncoder;
  */
 public final class NettyMessage {
 
-	private Header header;
+	private NettyMessageHeader header;
 
 	private byte[] body;
 
 	public static NettyMessage readNettyMessage(NettyMessage nettyMessage, ByteBuf byteBuf, MarshallingDecoder marshallingDecoder) throws Exception {
 		if(null == nettyMessage.getHeader()){
-			nettyMessage.setHeader(new Header());
+			nettyMessage.setHeader(new NettyMessageHeader());
 		}
-		Header.readHeader(nettyMessage.getHeader(),byteBuf,marshallingDecoder);
+		NettyMessageHeader.readHeader(nettyMessage.getHeader(),byteBuf,marshallingDecoder);
 		return readBody(nettyMessage,byteBuf);
 	}
 
@@ -50,21 +52,21 @@ public final class NettyMessage {
 
 
 	public static ByteBuf writeNettyMessage(NettyMessage nettyMessage,ByteBuf byteBuf,MarshallingEncoder marshallingEncoder) throws Exception {
-		Header.writeHeader(nettyMessage.getHeader(),byteBuf,marshallingEncoder);
+		NettyMessageHeader.writeHeader(nettyMessage.getHeader(),byteBuf,marshallingEncoder);
 		if (nettyMessage.getBody() != null) {
 			byteBuf.writeBytes(nettyMessage.getBody());
-			byteBuf.setInt(Header.BODY_LENGTH_OFFSET, nettyMessage.getBody().length);
+			byteBuf.setInt(NettyMessageHeader.BODY_LENGTH_OFFSET, nettyMessage.getBody().length);
 		}else{
-			byteBuf.setInt(Header.BODY_LENGTH_OFFSET, 0);
+			byteBuf.setInt(NettyMessageHeader.BODY_LENGTH_OFFSET, 0);
 		}
-		byteBuf.setInt(Header.LENGTH_OFFSET, byteBuf.readableBytes());
+		byteBuf.setInt(NettyMessageHeader.LENGTH_OFFSET, byteBuf.readableBytes());
 		return byteBuf;
 	}
 
 	/**
 	 * @return the header
 	 */
-	public final Header getHeader() {
+	public final NettyMessageHeader getHeader() {
 		return header;
 	}
 
@@ -72,7 +74,7 @@ public final class NettyMessage {
 	 * @param header
 	 *            the header to set
 	 */
-	public final void setHeader(Header header) {
+	public final void setHeader(NettyMessageHeader header) {
 		this.header = header;
 	}
 

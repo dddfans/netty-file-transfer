@@ -1,4 +1,4 @@
-package org.lqk.netty.server.complex;
+package org.lqk.netty.server.forward;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.lqk.netty.protocol.NettyMessageType;
 import org.lqk.netty.NettyConstant;
 import org.lqk.netty.codec.marshalling.MarshallingEncoder;
+import org.lqk.netty.forward.util.MD5Util;
 import org.lqk.netty.protocol.NettyMessageHeader;
 import org.lqk.netty.protocol.NettyMessage;
 import org.slf4j.Logger;
@@ -19,28 +20,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by bert on 16-4-26.
+ * Created by bert on 16-4-27.
  */
-public class ComplexClient {
-
-    private static Logger log = LoggerFactory.getLogger(ComplexClient.class);
+public class ForwardClient {
+    private static Logger log = LoggerFactory.getLogger(ForwardClient.class);
 
     public static void main(String[] args) throws Exception {
 
         Socket socket = new Socket(NettyConstant.REMOTE_IP,NettyConstant.REMOTE_PORT);
         OutputStream out = socket.getOutputStream();
-        NettyMessage infoMessage = fileInfoMessage("abc.mp3");
+        File file = new File("/home/bert/abc.mp3");
+        NettyMessage infoMessage = fileInfoMessage(file);
         sendMessage(infoMessage,out);
 
-        NettyMessage dataMessage = fileDataMessage("/home/bert/abc.mp3");
+        NettyMessage dataMessage = fileDataMessage(file);
         sendMessage(dataMessage,out);
         Thread.sleep(10000);
         out.close();
         socket.close();
     }
 
-    public static NettyMessage fileDataMessage(String filePath) throws IOException {
-        File file = new File(filePath);
+    public static NettyMessage fileDataMessage(File file) throws IOException {
         byte[] b = FileUtils.readFileToByteArray(file);
         NettyMessage message = new NettyMessage();
         NettyMessageHeader header = new NettyMessageHeader();
@@ -53,7 +53,7 @@ public class ComplexClient {
         return message;
     }
 
-    public static NettyMessage fileInfoMessage(String fileName) throws IOException {
+    public static NettyMessage fileInfoMessage(File file) throws IOException {
 
         NettyMessage message = new NettyMessage();
         NettyMessageHeader header = new NettyMessageHeader();
@@ -61,7 +61,9 @@ public class ComplexClient {
         Map<String,Object> attachment = new HashMap<String, Object>();
         header.setAttachment(attachment);
         header.setType(NettyMessageType.FILE_INFO_REQ.value());
-        attachment.put("fileName",fileName);
+        attachment.put("fileName",file.getName());
+        attachment.put("md5", MD5Util.md5(file));
+        attachment.put("fileSize",file.length());
         return message;
 
     }

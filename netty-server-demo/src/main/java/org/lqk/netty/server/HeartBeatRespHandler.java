@@ -18,9 +18,9 @@ package org.lqk.netty.server;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 
-import org.lqk.netty.protocol.Header;
+import org.lqk.netty.protocol.NettyMessageHeader;
 import org.lqk.netty.protocol.NettyMessage;
-import org.lqk.netty.MessageType;
+import org.lqk.netty.protocol.NettyMessageType;
 
 /**
  * @author Lilinfeng
@@ -34,7 +34,7 @@ public class HeartBeatRespHandler extends ChannelHandlerAdapter {
         NettyMessage message = (NettyMessage) msg;
         // 返回心跳应答消息
         if (message.getHeader() != null
-                && message.getHeader().getType() == MessageType.HEARTBEAT_REQ
+                && message.getHeader().getType() == NettyMessageType.HEARTBEAT_REQ
                 .value()) {
             System.out.println("Receive client heart beat message : ---> "
                     + message);
@@ -49,8 +49,8 @@ public class HeartBeatRespHandler extends ChannelHandlerAdapter {
 
     private NettyMessage buildHeatBeat() {
         NettyMessage message = new NettyMessage();
-        Header header = new Header();
-        header.setType(MessageType.HEARTBEAT_RESP.value());
+        NettyMessageHeader header = new NettyMessageHeader();
+        header.setType(NettyMessageType.HEARTBEAT_RESP.value());
         message.setHeader(header);
         return message;
     }

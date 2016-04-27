@@ -15,7 +15,7 @@
  */
 package org.lqk.netty.client;
 
-import org.lqk.netty.MessageType;
+import org.lqk.netty.protocol.NettyMessageType;
 import org.lqk.netty.struct.Header;
 import org.lqk.netty.struct.NettyMessage;
 
@@ -53,7 +53,7 @@ public class LoginAuthReqHandler extends ChannelHandlerAdapter {
 		NettyMessage message = (NettyMessage) msg;
 
 		// 如果是握手应答消息，需要判断是否认证成功
-		if (message.getHeader() != null && message.getHeader().getType() == MessageType.LOGIN_RESP.value()) {
+		if (message.getHeader() != null && message.getHeader().getType() == NettyMessageType.LOGIN_RESP.value()) {
 			byte loginResult =  message.getBody()[0];
 			if (loginResult != (byte) 0) {
 				// 握手失败，关闭连接
@@ -69,7 +69,7 @@ public class LoginAuthReqHandler extends ChannelHandlerAdapter {
 	private NettyMessage buildLoginReq() {
 		NettyMessage message = new NettyMessage();
 		Header header = new Header();
-		header.setType(MessageType.LOGIN_REQ.value());
+		header.setType(NettyMessageType.LOGIN_REQ.value());
 		message.setHeader(header);
 		return message;
 	}
