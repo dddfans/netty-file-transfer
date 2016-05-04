@@ -8,8 +8,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.lqk.netty.NettyConstant;
+import org.lqk.netty.forward.client.NettyRemotingClient;
 import org.lqk.netty.server.NettyMessageEncoder;
-import org.lqk.netty.server.forward.client.NettyRemotingClient;
 
 import java.io.IOException;
 

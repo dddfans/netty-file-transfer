@@ -28,7 +28,6 @@ import org.lqk.netty.protocol.NettyMessageType;
  * @date 2014年3月15日
  */
 public class HeartBeatRespHandler extends ChannelHandlerAdapter {
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg)
             throws Exception {
         NettyMessage message = (NettyMessage) msg;

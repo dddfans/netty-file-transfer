@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ComplexNettyMessageHandler extends ChannelHandlerAdapter{
     private static Logger log = LoggerFactory.getLogger(ComplexNettyMessageHandler.class);
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         NettyMessage message = (NettyMessage) msg;
         log.debug("receive message, type {}",message.getHeader().getType());

@@ -74,7 +74,7 @@ public class ForwardNettyMessageReplayingDecoder extends ReplayingDecoder<Forwar
                 }else{
                     len = Constant.BLOCK_SIZE;
                 }
-                log.debug("receive {} bytes 1, expectedLen {}", len, expectedLen);
+//                log.debug("receive {} bytes 1, expectedLen {}", len, expectedLen);
                 in.readBytes(b,0,len);
                 // 构造NettyCommand对象
                 if (done) {

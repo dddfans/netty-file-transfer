@@ -2,11 +2,11 @@ package org.lqk.netty.server.forward;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.lqk.netty.forward.client.NettyRemotingClient;
 import org.lqk.netty.forward.protocol.*;
 import org.lqk.netty.protocol.NettyMessage;
 import org.lqk.netty.protocol.NettyMessageHeader;
 import org.lqk.netty.protocol.NettyMessageType;
-import org.lqk.netty.server.forward.client.NettyRemotingClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public class ForwardNettyCommandHandler extends SimpleChannelInboundHandler<Nett
     }
 
     @Override
-    protected void messageReceived(ChannelHandlerContext ctx, NettyCommand nettyCommand) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, NettyCommand nettyCommand) throws Exception {
         int code = nettyCommand.getCmdCode();
         NettyCommandCode commandCode = NettyCommandCode.valueOf(code);
         log.debug("receive command, code {}", commandCode.name());
@@ -104,6 +104,5 @@ public class ForwardNettyCommandHandler extends SimpleChannelInboundHandler<Nett
                 log.error("error message type");
             }
         }
-
     }
 }
