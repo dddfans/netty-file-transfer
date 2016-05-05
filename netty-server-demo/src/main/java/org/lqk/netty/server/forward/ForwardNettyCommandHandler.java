@@ -2,11 +2,12 @@ package org.lqk.netty.server.forward;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import org.lqk.netty.forward.client.NettyRemotingClient;
+import org.lqk.netty.forward.client.NettyCommandClient;
 import org.lqk.netty.forward.protocol.*;
 import org.lqk.netty.protocol.NettyMessage;
 import org.lqk.netty.protocol.NettyMessageHeader;
 import org.lqk.netty.protocol.NettyMessageType;
+import org.lqk.netty.zk.ServerServiceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,11 +20,11 @@ import java.util.zip.CRC32;
  * Created by bert on 16-4-26.
  */
 public class ForwardNettyCommandHandler extends SimpleChannelInboundHandler<NettyCommand> {
-    private NettyRemotingClient nettyRemotingClient;
+    private NettyCommandClient nettyRemotingClient;
     private CRC32 crc32 = new CRC32();
     private static Logger log = LoggerFactory.getLogger(ForwardNettyCommandHandler.class);
 
-    public ForwardNettyCommandHandler(NettyRemotingClient nettyRemotingClient) {
+    public ForwardNettyCommandHandler(NettyCommandClient nettyRemotingClient) {
         this.nettyRemotingClient = nettyRemotingClient;
     }
 
@@ -32,10 +33,12 @@ public class ForwardNettyCommandHandler extends SimpleChannelInboundHandler<Nett
         int code = nettyCommand.getCmdCode();
         NettyCommandCode commandCode = NettyCommandCode.valueOf(code);
         log.debug("receive command, code {}", commandCode.name());
+        String key = nettyCommand.getOpaque() + ":" + ServerServiceType.AUDIO.getCode();
         //TODO 将其改为异步操作
         switch (commandCode) {
             case FILE_INFO: {
-                NettyCommand responseCommand = nettyRemotingClient.invokeSync("127.0.0.1:8000", nettyCommand, 10 * 1000);
+//                NettyCommand responseCommand = nettyRemotingClient.invokeSync("127.0.0.1:8000", nettyCommand, 10 * 1000);
+                NettyCommand responseCommand = nettyRemotingClient.invokeSync(key, nettyCommand, 10 * 1000);
                 log.debug("opaque {}, cmdCode {},type {}", responseCommand.getOpaque(), responseCommand.getCmdCode(), responseCommand.getType());
                 FileInfoResponse f = (FileInfoResponse) responseCommand.getBody();
                 if (null != f) {
@@ -60,7 +63,7 @@ public class ForwardNettyCommandHandler extends SimpleChannelInboundHandler<Nett
                 crc32.reset();
                 crc32.update(request.getContent());
                 request.setCrc32(crc32.getValue());
-                NettyCommand responseCommand = nettyRemotingClient.invokeSync("127.0.0.1:8000", nettyCommand, 10 * 1000);
+                NettyCommand responseCommand = nettyRemotingClient.invokeSync(key, nettyCommand, 10 * 1000);
                 log.debug("opaque {}, cmdCode {},type {}", responseCommand.getOpaque(), responseCommand.getCmdCode(), responseCommand.getType());
                 FileSegmentResponse f = (FileSegmentResponse) responseCommand.getBody();
                 if (null != f) {
@@ -79,7 +82,7 @@ public class ForwardNettyCommandHandler extends SimpleChannelInboundHandler<Nett
                 crc32.reset();
                 crc32.update(request.getContent());
                 request.setCrc32(crc32.getValue());
-                NettyCommand responseCommand = nettyRemotingClient.invokeSync("127.0.0.1:8000", nettyCommand, 10 * 1000);
+                NettyCommand responseCommand = nettyRemotingClient.invokeSync(key, nettyCommand, 10 * 1000);
                 log.debug("opaque {}, cmdCode {},type {}", responseCommand.getOpaque(), responseCommand.getCmdCode(), responseCommand.getType());
                 FileSegmentResponse f = (FileSegmentResponse) responseCommand.getBody();
                 if (null != f) {

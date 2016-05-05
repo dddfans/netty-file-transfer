@@ -8,7 +8,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.lqk.netty.NettyConstant;
-import org.lqk.netty.forward.client.NettyRemotingClient;
+import org.lqk.netty.forward.client.NettyCommandClient;
 import org.lqk.netty.server.NettyMessageEncoder;
 
 import java.io.IOException;
@@ -17,8 +17,8 @@ import java.io.IOException;
  * Created by bert on 16-4-26.
  */
 public class ForwardNettyServer {
-    private NettyRemotingClient nettyRemotingClient;
-    public ForwardNettyServer(NettyRemotingClient nettyRemotingClient){
+    private NettyCommandClient nettyRemotingClient;
+    public ForwardNettyServer(NettyCommandClient nettyRemotingClient){
         this.nettyRemotingClient = nettyRemotingClient;
     }
     public void bind() throws Exception {
@@ -46,7 +46,7 @@ public class ForwardNettyServer {
     }
 
     public static void main(String[] args) throws Exception {
-        NettyRemotingClient nettyRemotingClient = new NettyRemotingClient();
+        NettyCommandClient nettyRemotingClient = new NettyCommandClient();
         nettyRemotingClient.start();
         new ForwardNettyServer(nettyRemotingClient).bind();
     }

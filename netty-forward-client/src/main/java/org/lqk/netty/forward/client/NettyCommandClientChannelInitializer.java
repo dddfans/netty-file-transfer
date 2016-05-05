@@ -9,10 +9,10 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 /**
  * Created by bert on 16-5-4.
  */
-public class ClientChannelInitializer extends ChannelInitializer<SocketChannel> {
+public class NettyCommandClientChannelInitializer extends ChannelInitializer<SocketChannel> {
     private FileResponseProcessorDispatcher fileResponseProcessorDispatcher;
 
-    public ClientChannelInitializer(FileResponseProcessorDispatcher fileResponseProcessorDispatcher){
+    public NettyCommandClientChannelInitializer(FileResponseProcessorDispatcher fileResponseProcessorDispatcher){
         this.fileResponseProcessorDispatcher = fileResponseProcessorDispatcher;
     }
     @Override
@@ -20,7 +20,7 @@ public class ClientChannelInitializer extends ChannelInitializer<SocketChannel> 
         socketChannel.pipeline().addLast(
                 new ObjectEncoder(),
                 new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
-                new NettyRemotingClientHandler(fileResponseProcessorDispatcher)
+                new NettyCommandClientHandler(fileResponseProcessorDispatcher)
         );
     }
 }

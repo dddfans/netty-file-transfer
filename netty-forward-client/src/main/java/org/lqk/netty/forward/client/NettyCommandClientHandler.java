@@ -12,14 +12,14 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by bert on 16-4-27.
  */
-public class NettyRemotingClientHandler  extends SimpleChannelInboundHandler<NettyCommand> {
+public class NettyCommandClientHandler extends SimpleChannelInboundHandler<NettyCommand> {
     private FileResponseProcessorDispatcher fileResponseProcessorDispatcher;
 
-    public NettyRemotingClientHandler(FileResponseProcessorDispatcher fileResponseProcessorDispatcher){
+    public NettyCommandClientHandler(FileResponseProcessorDispatcher fileResponseProcessorDispatcher){
         this.fileResponseProcessorDispatcher = fileResponseProcessorDispatcher;
     }
 
-    private static Logger log = LoggerFactory.getLogger(NettyRemotingClientHandler.class);
+    private static Logger log = LoggerFactory.getLogger(NettyCommandClientHandler.class);
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, NettyCommand msg) throws Exception {

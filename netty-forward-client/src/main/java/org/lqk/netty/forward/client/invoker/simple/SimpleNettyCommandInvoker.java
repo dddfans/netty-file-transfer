@@ -1,9 +1,10 @@
-package org.lqk.netty.forward.client.invoker;
+package org.lqk.netty.forward.client.invoker.simple;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.GenericFutureListener;
+import org.lqk.netty.forward.client.invoker.AbstractNettyCommandInvoker;
 import org.lqk.netty.forward.protocol.*;
 import org.lqk.netty.forward.protocol.future.NettyCommandFuture;
 import org.lqk.netty.forward.protocol.future.NettyCommandFutureBuilder;
@@ -36,23 +37,23 @@ public class SimpleNettyCommandInvoker extends AbstractNettyCommandInvoker {
 	/**
 	 * 建立channel
 	 *
-	 * @param addr
+	 * @param key
 	 * @return
 	 */
-	protected Channel createChannel(String addr) {
+	protected Channel createChannel(String key) {
 		Channel channel = null;
-		ChannelFuture future = channelMap.get(addr);
+		ChannelFuture future = channelMap.get(key);
 		if (future != null) {
 			channel = future.channel();
 			return channel;
 		}
 
-		String[] split = addr.split(":");
+		String[] split = key.split(":");
 		InetSocketAddress address = new InetSocketAddress(split[0], Integer.valueOf(split[1]));
 		ChannelFuture sync = null;
 		try {
 			sync = this.bootstrap.connect(address).sync();
-			channelMap.put(addr, sync);
+			channelMap.put(key, sync);
 			channel = sync.channel();
 		} catch (InterruptedException e) {
 			log.error(e.getMessage(),e);
@@ -63,10 +64,10 @@ public class SimpleNettyCommandInvoker extends AbstractNettyCommandInvoker {
 	/**
 	 * 关闭channel
 	 *
-	 * @param addr
+	 * @param key
 	 * @param channel
 	 */
-	protected void closeChannel(String addr, Channel channel) {
+	protected void closeChannel(String key, Channel channel) {
 
 	}
 

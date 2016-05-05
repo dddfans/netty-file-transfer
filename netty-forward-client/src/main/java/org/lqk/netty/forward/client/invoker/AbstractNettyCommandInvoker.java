@@ -4,7 +4,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.GenericFutureListener;
-import org.lqk.netty.forward.NettyCommandInvoker;
 import org.lqk.netty.forward.protocol.*;
 import org.lqk.netty.forward.protocol.future.NettyCommandFuture;
 import org.lqk.netty.forward.protocol.future.NettyCommandFutureBuilder;
@@ -35,60 +34,60 @@ public abstract class AbstractNettyCommandInvoker implements NettyCommandInvoker
     /**
      * 建立channel
      *
-     * @param addr
+     * @param key
      * @return
      */
-    protected abstract Channel createChannel(String addr) throws InterruptedException;
+    protected abstract Channel createChannel(String key) throws InterruptedException;
 
     /**
      * 关闭channel
      *
-     * @param addr
+     * @param key
      * @param channel
      */
-    protected abstract void closeChannel(String addr, Channel channel);
+    protected abstract void closeChannel(String key, Channel channel);
 
-    public NettyCommand invokeSync(String addr, NettyCommand command, long timeoutMills) {
+    public NettyCommand invokeSync(String key, NettyCommand command, long timeoutMills) {
         Channel channel = null;
         try {
-            channel = createChannel(addr);
+            channel = createChannel(key);
             if (channel != null && channel.isActive()) {
                 NettyCommand repsonse = invokeSync(channel, command, timeoutMills);
                 return repsonse;
             } else {
-                this.closeChannel(addr, channel);
-                throw new Exception(addr);
+                this.closeChannel(key, channel);
+                throw new Exception(key);
             }
         } catch (Exception e) {
             log.debug(e.getMessage(),e);
         }finally {
-            this.closeChannel(addr, channel);
+            this.closeChannel(key, channel);
         }
         return null;
     }
 
-    public void invokeAsync(String addr, NettyCommand command, long timeoutMills, NettyCommandCallBack callBack) {
+    public void invokeAsync(String key, NettyCommand command, long timeoutMills, NettyCommandCallBack callBack) {
         try {
-            Channel channel = createChannel(addr);
+            Channel channel = createChannel(key);
             if (channel != null && channel.isActive()) {
                 invokeAsync(channel, command, timeoutMills, callBack);
             } else {
-                this.closeChannel(addr, channel);
-                throw new Exception(addr);
+                this.closeChannel(key, channel);
+                throw new Exception(key);
             }
         } catch (Exception e) {
             log.debug(e.getMessage(),e);
         }
     }
 
-    public void invokeOneway(String addr, NettyCommand command, long timeoutMills) {
+    public void invokeOneway(String key, NettyCommand command, long timeoutMills) {
         try {
-            Channel channel = createChannel(addr);
+            Channel channel = createChannel(key);
             if (channel != null && channel.isActive()) {
                 invokeOneway(channel, command, timeoutMills);
             } else {
-                this.closeChannel(addr, channel);
-                throw new Exception(addr);
+                this.closeChannel(key, channel);
+                throw new Exception(key);
             }
         } catch (Exception e) {
             log.debug(e.getMessage(),e);

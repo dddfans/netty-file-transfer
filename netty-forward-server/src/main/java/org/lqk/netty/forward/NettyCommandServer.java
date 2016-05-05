@@ -17,7 +17,7 @@ import java.net.InetSocketAddress;
 /**
  * Created by Administrator on 2015/8/25.
  */
-public class NettyRemotingServer implements RemotingServer {
+public class NettyCommandServer implements RemotingServer {
 
 	private int port;
 
@@ -29,9 +29,9 @@ public class NettyRemotingServer implements RemotingServer {
 
 	private FileRequestProcessorDispatcher processorDispatcher;
 
-	private static Logger log = LoggerFactory.getLogger(NettyRemotingServer.class);
+	private static Logger log = LoggerFactory.getLogger(NettyCommandServer.class);
 
-	public NettyRemotingServer(int port, String baseDir) {
+	public NettyCommandServer(int port, String baseDir) {
 		this.port = port;
 		this.processorDispatcher = new FileRequestProcessorDispatcher(baseDir);
 		this.serverBootstrap = new ServerBootstrap();
@@ -47,7 +47,7 @@ public class NettyRemotingServer implements RemotingServer {
 					protected void initChannel(SocketChannel socketChannel) throws Exception {
 						socketChannel.pipeline().addLast(new ObjectEncoder(),
 								new ObjectDecoder(Constant.MAX_OBJECT_SIZE, ClassResolvers.cacheDisabled(null)),
-								new NettyRemotingServerHandler(processorDispatcher));
+								new NettyCommandServerHandler(processorDispatcher));
 					}
 
 				});

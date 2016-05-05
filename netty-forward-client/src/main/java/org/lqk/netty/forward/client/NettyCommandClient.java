@@ -1,31 +1,28 @@
 package org.lqk.netty.forward.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.serialization.ClassResolvers;
-import io.netty.handler.codec.serialization.ObjectDecoder;
-import io.netty.handler.codec.serialization.ObjectEncoder;
-import org.lqk.netty.forward.NettyCommandInvoker;
 import org.lqk.netty.forward.RemotingClient;
-import org.lqk.netty.forward.client.invoker.PooledNettyCommandInvoker;
-import org.lqk.netty.forward.client.invoker.SimpleNettyCommandInvoker;
+import org.lqk.netty.forward.client.invoker.NettyCommandInvoker;
+import org.lqk.netty.forward.client.invoker.NettyCommandInvokerBuilder;
 import org.lqk.netty.forward.protocol.NettyCommand;
 import org.lqk.netty.forward.protocol.NettyCommandCallBack;
 import org.lqk.netty.forward.protocol.future.NettyCommandFuture;
+import org.lqk.netty.zk.client.ServerAddressProvider;
+import org.lqk.netty.zk.client.ZookeeperServerAddressProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Administrator on 2015/8/25.
  */
-public class NettyRemotingClient implements RemotingClient, NettyCommandInvoker {
+public class NettyCommandClient implements RemotingClient, NettyCommandInvoker {
 
     private final Bootstrap bootstrap;
 
@@ -39,14 +36,20 @@ public class NettyRemotingClient implements RemotingClient, NettyCommandInvoker 
     private final Timer timer = new Timer("ClientHouseKeepingService", true);
     private FileResponseProcessorDispatcher fileResponseProcessorDispatcher;
 
-    private static Logger log = LoggerFactory.getLogger(NettyRemotingClient.class);
+    private ServerAddressProvider serverAddressProvider;
 
-    public NettyRemotingClient() {
+    private static Logger log = LoggerFactory.getLogger(NettyCommandClient.class);
+
+    public NettyCommandClient() throws Exception {
         this.bootstrap = new Bootstrap();
         this.eventWorkerLoopGroup = new NioEventLoopGroup();
         fileResponseProcessorDispatcher = new FileResponseProcessorDispatcher(requestTable);
 //        nettyCommandInvoker = new SimpleNettyCommandInvoker(bootstrap,requestTable);
-        nettyCommandInvoker = new PooledNettyCommandInvoker(bootstrap,requestTable,(long)(10 * 1000),new ClientChannelInitializer(fileResponseProcessorDispatcher));
+//        nettyCommandInvoker = NettyCommandInvokerBuilder.create(bootstrap, requestTable, new NettyCommandClientChannelInitializer(fileResponseProcessorDispatcher),
+//                (long) (10 * 1000), 1, 1);
+        serverAddressProvider = new ZookeeperServerAddressProvider();
+        nettyCommandInvoker = NettyCommandInvokerBuilder.create(bootstrap, requestTable, new NettyCommandClientChannelInitializer(fileResponseProcessorDispatcher),
+                (long) (10 * 1000), 1, 1,serverAddressProvider);
     }
 
 
@@ -54,7 +57,7 @@ public class NettyRemotingClient implements RemotingClient, NettyCommandInvoker 
         this.bootstrap
                 .group(eventWorkerLoopGroup)
                 .channel(NioSocketChannel.class)
-                .handler(new ClientChannelInitializer(fileResponseProcessorDispatcher));
+                .handler(new NettyCommandClientChannelInitializer(fileResponseProcessorDispatcher));
 
 //        timer.scheduleAtFixedRate(new TimerTask() {
 //            @Override
@@ -66,8 +69,9 @@ public class NettyRemotingClient implements RemotingClient, NettyCommandInvoker 
 
 
 
-    public void stop() {
+    public void stop() throws IOException {
         this.eventWorkerLoopGroup.shutdownGracefully();
+        serverAddressProvider.close();
     }
 
 

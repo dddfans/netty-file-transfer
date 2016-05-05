@@ -1,22 +1,23 @@
-package org.lqk.netty.forward.client.invoker;
+package org.lqk.netty.forward.client.invoker.pool;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.pool.AbstractChannelPoolMap;
-import io.netty.channel.pool.ChannelPoolHandler;
-import io.netty.channel.pool.ChannelPoolMap;
-import io.netty.channel.pool.SimpleChannelPool;
+import io.netty.channel.pool.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import org.apache.commons.lang.StringUtils;
+import org.lqk.netty.forward.client.invoker.AbstractNettyCommandInvoker;
+import org.lqk.netty.forward.client.invoker.SimpleChannelPoolMap;
 import org.lqk.netty.forward.protocol.*;
 import org.lqk.netty.forward.protocol.future.NettyCommandFuture;
 import org.lqk.netty.forward.protocol.future.NettyCommandFutureBuilder;
+import org.lqk.netty.zk.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -26,55 +27,48 @@ import java.util.concurrent.TimeUnit;
 
 public class PooledNettyCommandInvoker extends AbstractNettyCommandInvoker {
 
-    private ChannelPoolMap<String, SimpleChannelPool> poolMap;
+    protected ChannelPoolMap<InetSocketAddress, ChannelPool> poolMap;
 
-    private long timeout;
+    protected ServerAddressConverter serverAddressConverter;
 
-    private ChannelInitializer channelInitializer;
+    protected long acquireTimeoutMillis;
 
     private static Logger log = LoggerFactory.getLogger(PooledNettyCommandInvoker.class);
 
-    public PooledNettyCommandInvoker(final Bootstrap bootstrap, ConcurrentHashMap<Integer, NettyCommandFuture> requestTable, long timeout,ChannelInitializer channelInitializer) {
+    public PooledNettyCommandInvoker(final Bootstrap bootstrap, ConcurrentHashMap<Integer, NettyCommandFuture> requestTable,ChannelInitializer channelInitializer,long acquireTimeoutMillis) {
         super(bootstrap, requestTable);
-        this.poolMap = new AbstractChannelPoolMap<String, SimpleChannelPool>() {
-            @Override
-            protected SimpleChannelPool newPool(String key) {
-                String[] address = key.split(":");
-                return new SimpleChannelPool(bootstrap.remoteAddress(address[0],Integer.parseInt(address[1])), new DefaultChannelPoolHandler());
-            }
-        };
-        this.timeout = timeout;
-        this.channelInitializer = channelInitializer;
+        this.acquireTimeoutMillis = acquireTimeoutMillis;
+        this.poolMap = new SimpleChannelPoolMap(bootstrap,new SimpleChannelPoolHandler(channelInitializer));
+        this.serverAddressConverter = new SimpleServerAddressConverter();
     }
 
-    private class DefaultChannelPoolHandler implements ChannelPoolHandler {
+    public PooledNettyCommandInvoker(final Bootstrap bootstrap, ConcurrentHashMap<Integer, NettyCommandFuture> requestTable,
+                                          ChannelInitializer channelInitializer, long acquireTimeoutMillis, int maxConnections, int maxPendingAcquires) {
+        super(bootstrap, requestTable);
+        this.acquireTimeoutMillis = acquireTimeoutMillis;
+        this.poolMap = new SimpleChannelPoolMap(bootstrap,new SimpleChannelPoolHandler(channelInitializer),acquireTimeoutMillis,maxConnections,maxPendingAcquires);
+        this.serverAddressConverter = new SimpleServerAddressConverter();
+    }
 
-        public void channelReleased(Channel ch) throws Exception {
-            log.debug("channelReleased");
-        }
-
-        public void channelAcquired(Channel ch) throws Exception {
-            log.debug("channelAcquired");
-        }
-
-        public void channelCreated(Channel ch) throws Exception {
-            log.debug("channelCreated");
-            //TODO handler提前绑定好像有问题，channelpool只是做了创建，并没有做相关的绑定，所以channel创建完毕后，必须再绑定一次
-            ch.pipeline().addLast(channelInitializer);
-
-        }
+    public PooledNettyCommandInvoker(final Bootstrap bootstrap, ConcurrentHashMap<Integer, NettyCommandFuture> requestTable,
+                                     ChannelInitializer channelInitializer, long acquireTimeoutMillis, int maxConnections, int maxPendingAcquires, ServerAddressProvider serverAddressProvider) {
+        super(bootstrap, requestTable);
+        this.acquireTimeoutMillis = acquireTimeoutMillis;
+        this.poolMap = new SimpleChannelPoolMap(bootstrap,new SimpleChannelPoolHandler(channelInitializer),acquireTimeoutMillis,maxConnections,maxPendingAcquires);
+        this.serverAddressConverter = new ZookeeperServerAddressConverter(serverAddressProvider);
     }
 
     /**
      * 建立channel
      *
-     * @param addr
+     * @param key
      * @return
      */
-    protected Channel createChannel(String addr) throws InterruptedException {
-        final SimpleChannelPool pool = poolMap.get(addr);
+    protected Channel createChannel(String key) throws InterruptedException {
+        InetSocketAddress address = serverAddressConverter.convert(key);
+        final ChannelPool pool = poolMap.get(address);
         Future<Channel> f = pool.acquire();
-        f.await(timeout, TimeUnit.MILLISECONDS);
+        f.await(acquireTimeoutMillis, TimeUnit.MILLISECONDS);
         Channel channel = f.getNow();
         log.debug("channel isActive {},isOpen {} pipeline {} ",channel.isActive(),channel.isOpen(),channel.pipeline().toString());
         return channel;
@@ -83,14 +77,15 @@ public class PooledNettyCommandInvoker extends AbstractNettyCommandInvoker {
     /**
      * 关闭channel
      *
-     * @param addr
+     * @param key
      * @param channel
      */
-    protected void closeChannel(String addr, Channel channel) {
-        if (StringUtils.isEmpty(addr) || null == channel) {
+    protected void closeChannel(String key, Channel channel) {
+        if (StringUtils.isEmpty(key) || null == channel) {
             return;
         }
-        final SimpleChannelPool pool = poolMap.get(addr);
+        InetSocketAddress address = serverAddressConverter.convert(key);
+        final ChannelPool pool = poolMap.get(address);
         if(null == pool){
             return;
         }
